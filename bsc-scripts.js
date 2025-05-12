@@ -1,17 +1,16 @@
 // === Bend Swim Club Custom Script ===
 window.BSC = window.BSC || {};
 
-// === Feature: Guest Table Search & Sort ===
+// === Guest Table Search & Sort ===
 BSC.enableGuestListTable = function () {
-  (function loadFontAwesome() {
-    if (!document.querySelector('link[href*="font-awesome"]')) {
-      const faLink = document.createElement('link');
-      faLink.rel = 'stylesheet';
-      faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
-      faLink.crossOrigin = 'anonymous';
-      document.head.appendChild(faLink);
-    }
-  })();
+  // Inject Font Awesome
+  if (!document.querySelector('link[href*="font-awesome"]')) {
+    const faLink = document.createElement('link');
+    faLink.rel = 'stylesheet';
+    faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+    faLink.crossOrigin = 'anonymous';
+    document.head.appendChild(faLink);
+  }
 
   function initGuestTables() {
     const tables = document.querySelectorAll("table.guestTable");
@@ -82,29 +81,22 @@ BSC.enableGuestListTable = function () {
     });
   }
 
-  function waitForElement(selector, callback, maxAttempts = 20, delay = 300) {
-    let attempts = 0;
-    const interval = setInterval(() => {
-      const el = document.querySelector(selector);
-      if (el) {
-        clearInterval(interval);
-        callback(el);
-      } else if (++attempts >= maxAttempts) {
-        clearInterval(interval);
-        console.warn("BSC: Element not found:", selector);
-      }
-    }, delay);
-  }
-
-  waitForElement("table.guestTable", initGuestTables);
+  // Wait for table to exist
+  const check = setInterval(() => {
+    const table = document.querySelector("table.guestTable");
+    if (table) {
+      clearInterval(check);
+      initGuestTables();
+    }
+  }, 300);
 };
 
-// === Feature: Confirm RSVP Button with waitForElement ===
+// === Confirm RSVP Button — With MutationObserver ===
 BSC.addConfirmButton = function () {
   function injectButton() {
-    const calendarItems = document.querySelectorAll('.Calendar .CalendarItem');
+    const items = document.querySelectorAll('.Calendar .CalendarItem');
 
-    calendarItems.forEach(item => {
+    items.forEach(item => {
       const titleEl = item.querySelector('.Title.AnonId_title');
       const cleanText = titleEl?.textContent?.trim()?.toLowerCase();
 
@@ -130,24 +122,21 @@ BSC.addConfirmButton = function () {
     });
   }
 
-  function waitForElement(selector, callback, maxAttempts = 20, delay = 300) {
-    let attempts = 0;
-    const interval = setInterval(() => {
-      const el = document.querySelector(selector);
-      if (el) {
-        clearInterval(interval);
-        callback(el);
-      } else if (++attempts >= maxAttempts) {
-        clearInterval(interval);
-        console.warn("BSC: Element not found:", selector);
-      }
-    }, delay);
-  }
+  const calendar = document.querySelector('.Calendar');
+  if (!calendar) return;
 
-  waitForElement('.Calendar .CalendarItem', injectButton);
+  // Inject immediately
+  injectButton();
+
+  // Re-inject on any DOM changes to calendar items
+  const observer = new MutationObserver(() => {
+    injectButton();
+  });
+
+  observer.observe(calendar, { childList: true, subtree: true });
 };
 
-// === Run when ready ===
+// === Run both features when DOM is ready ===
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", function () {
     BSC.enableGuestListTable();
