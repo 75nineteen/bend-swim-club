@@ -96,23 +96,27 @@ BSC.enableGuestListTable = function () {
         // Update sort arrows
         const headers = table.querySelectorAll("th");
         headers.forEach((header, i) => {
-          // Remove any existing arrows
-          header.textContent = header.textContent.replace(/[\u25B2\u25BC]/g, '').trim();
+          header.textContent = header.textContent.replace(/[\u25B2\u25BC]/g, '').trim(); // remove old arrows
           if (i === columnIndex) {
             header.textContent += isAsc ? ' ▲' : ' ▼';
           }
         });
       }
     });
-
-    // If no tables found, retry for a few seconds
-    if (tables.length === 0 && BSC._guestTableRetryCount < 10) {
-      BSC._guestTableRetryCount++;
-      setTimeout(initGuestTables, 300); // Try again in 300ms
-    }
   };
 
-  BSC._guestTableRetryCount = 0;
+  // Use MutationObserver to watch for guestTable appearing
+  const observer = new MutationObserver((mutations, obs) => {
+    const table = document.querySelector("table.guestTable");
+    if (table && table.dataset.initialized !== "true") {
+      obs.disconnect(); // stop watching
+      initGuestTables(); // run search + sort setup
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // In case it's already there, run once now
   initGuestTables();
 };
 
