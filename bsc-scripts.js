@@ -20,7 +20,6 @@ BSC.enableGuestListTable = function () {
       if (table.dataset.initialized === "true") return;
       table.dataset.initialized = "true";
 
-      // Insert search input above .TableWrapper
       const input = document.createElement("input");
       input.type = "text";
       input.placeholder = "Search...";
@@ -106,7 +105,9 @@ BSC.addConfirmButton = function () {
 
   calendarSections.forEach(section => {
     const titleEl = section.querySelector('.Title.AnonId_title');
-    if (titleEl && titleEl.textContent.includes('Bend Swim Club Team Celebration')) {
+    const cleanText = titleEl?.textContent?.trim()?.toLowerCase();
+
+    if (cleanText && cleanText.includes('bend swim club team celebration')) {
       const actionsContainer = section.querySelector('.Actions.AnonId_actionContainer.HasActions');
       if (!actionsContainer || actionsContainer.querySelector('.confirm-btn')) return;
 
