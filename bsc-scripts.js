@@ -47,8 +47,19 @@ BSC.registerInit(function addRSVPButton() {
   });
 });
 
-// === Feature: Guest Table Search & Sort ===
+// === Feature: Guest Table Search & Sort with Font Awesome Arrows ===
 BSC.enableGuestListTable = function () {
+  // Inject Font Awesome if not already present
+  (function loadFontAwesome() {
+    if (!document.querySelector('link[href*="font-awesome"]')) {
+      const faLink = document.createElement('link');
+      faLink.rel = 'stylesheet';
+      faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+      faLink.crossOrigin = 'anonymous';
+      document.head.appendChild(faLink);
+    }
+  })();
+
   const initGuestTables = () => {
     const tables = document.querySelectorAll("table.guestTable");
 
@@ -56,12 +67,11 @@ BSC.enableGuestListTable = function () {
       if (table.dataset.initialized === "true") return;
       table.dataset.initialized = "true";
 
-      // Insert search input before the table
+      // Insert search input above the table
       const input = document.createElement("input");
       input.type = "text";
       input.placeholder = "Search...";
       input.className = "guestTableSearchInput";
-
       table.parentNode.insertBefore(input, table);
 
       input.addEventListener("keyup", function () {
@@ -73,9 +83,18 @@ BSC.enableGuestListTable = function () {
         });
       });
 
+      // Make headers sortable with icons
       const headers = table.querySelectorAll("th");
       headers.forEach((header, colIndex) => {
         header.style.cursor = "pointer";
+
+        // Add icon span if missing
+        if (!header.querySelector('.sort-icon')) {
+          const icon = document.createElement('span');
+          icon.className = 'sort-icon fas fa-sort';
+          header.appendChild(icon);
+        }
+
         header.addEventListener("click", () => sortTableByColumn(table, colIndex));
       });
 
@@ -93,31 +112,32 @@ BSC.enableGuestListTable = function () {
         table.setAttribute("data-sort-col", columnIndex);
         table.setAttribute("data-sort-dir", isAsc ? "asc" : "desc");
 
-        // Update sort arrows
-        const headers = table.querySelectorAll("th");
-        headers.forEach((header, i) => {
-          header.textContent = header.textContent.replace(/[\u25B2\u25BC]/g, '').trim(); // remove old arrows
-          if (i === columnIndex) {
-            header.textContent += isAsc ? ' ▲' : ' ▼';
+        // Update icons
+        table.querySelectorAll("th").forEach((header, i) => {
+          const icon = header.querySelector('.sort-icon');
+          if (icon) {
+            icon.className = 'sort-icon fas ' + (
+              i === columnIndex
+                ? (isAsc ? 'fa-sort-up' : 'fa-sort-down')
+                : 'fa-sort'
+            );
           }
         });
       }
     });
   };
 
-  // Use MutationObserver to watch for guestTable appearing
+  // Use MutationObserver to detect table after CMS load
   const observer = new MutationObserver((mutations, obs) => {
     const table = document.querySelector("table.guestTable");
     if (table && table.dataset.initialized !== "true") {
       obs.disconnect(); // stop watching
-      initGuestTables(); // run search + sort setup
+      initGuestTables();
     }
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
-
-  // In case it's already there, run once now
-  initGuestTables();
+  initGuestTables(); // run once in case it's already present
 };
 
 // === Auto-run all registered scripts ===
