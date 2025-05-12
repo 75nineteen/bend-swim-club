@@ -1,25 +1,9 @@
-// Create BSC namespace and script registry
-window.BSC = window.BSC || {
-  _initFunctions: [],
+// BSC namespace
+window.BSC = window.BSC || {};
 
-  registerInit(fn) {
-    this._initFunctions.push(fn);
-  },
-
-  runAll() {
-    this._initFunctions.forEach(fn => {
-      try {
-        fn();
-      } catch (e) {
-        console.error("BSC script error:", e);
-      }
-    });
-  }
-};
-
-// === Feature: Guest Table Search & Sort with Font Awesome Arrows ===
+// === Enable guest table search + sort ===
 BSC.enableGuestListTable = function () {
-  // Inject Font Awesome if not already present
+  // Load Font Awesome if needed
   (function loadFontAwesome() {
     if (!document.querySelector('link[href*="font-awesome"]')) {
       const faLink = document.createElement('link');
@@ -30,14 +14,14 @@ BSC.enableGuestListTable = function () {
     }
   })();
 
-  const initGuestTables = () => {
+  function initGuestTables() {
     const tables = document.querySelectorAll("table.guestTable");
 
     tables.forEach((table) => {
       if (table.dataset.initialized === "true") return;
       table.dataset.initialized = "true";
 
-      // Insert search input above the table wrapper (instead of inside <thead>)
+      // Insert search input above .TableWrapper
       const input = document.createElement("input");
       input.type = "text";
       input.placeholder = "Search...";
@@ -47,7 +31,6 @@ BSC.enableGuestListTable = function () {
       if (wrapper && wrapper.parentNode) {
         wrapper.parentNode.insertBefore(input, wrapper);
       } else {
-        // fallback: insert above table
         table.parentNode.insertBefore(input, table);
       }
 
@@ -60,12 +43,12 @@ BSC.enableGuestListTable = function () {
         });
       });
 
-      // Make headers sortable with icons
+      // Make headers sortable
       const headers = table.querySelectorAll("th");
       headers.forEach((header, colIndex) => {
         header.style.cursor = "pointer";
 
-        // Add icon span if missing
+        // Add icon if not present
         if (!header.querySelector('.sort-icon')) {
           const icon = document.createElement('span');
           icon.className = 'sort-icon fas fa-sort';
@@ -89,7 +72,6 @@ BSC.enableGuestListTable = function () {
         table.setAttribute("data-sort-col", columnIndex);
         table.setAttribute("data-sort-dir", isAsc ? "asc" : "desc");
 
-        // Update icons
         table.querySelectorAll("th").forEach((header, i) => {
           const icon = header.querySelector('.sort-icon');
           if (icon) {
@@ -102,9 +84,9 @@ BSC.enableGuestListTable = function () {
         });
       }
     });
-  };
+  }
 
-  // Wait for table to exist before running logic
+  // Wait for .guestTable to appear
   function waitForElement(selector, callback, maxAttempts = 20, delay = 300) {
     let attempts = 0;
     const interval = setInterval(() => {
@@ -124,8 +106,7 @@ BSC.enableGuestListTable = function () {
   });
 };
 
-// === Auto-run all registered scripts ===
+// Run script
 document.addEventListener("DOMContentLoaded", function () {
-  BSC.runAll();
-  BSC.enableGuestListTable(); // critical fix: call directly
+  BSC.enableGuestListTable();
 });
