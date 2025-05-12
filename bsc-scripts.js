@@ -99,16 +99,16 @@ BSC.enableGuestListTable = function () {
   waitForElement("table.guestTable", initGuestTables);
 };
 
-// === Feature: Confirm RSVP Button ===
+// === Feature: Confirm RSVP Button (targeting .CalendarItem) ===
 BSC.addConfirmButton = function () {
-  const calendarSections = document.querySelectorAll('.Calendar');
+  const calendarItems = document.querySelectorAll('.Calendar .CalendarItem');
 
-  calendarSections.forEach(section => {
-    const titleEl = section.querySelector('.Title.AnonId_title');
+  calendarItems.forEach(item => {
+    const titleEl = item.querySelector('.Title.AnonId_title');
     const cleanText = titleEl?.textContent?.trim()?.toLowerCase();
 
     if (cleanText && cleanText.includes('bend swim club team celebration')) {
-      const actionsContainer = section.querySelector('.Actions.AnonId_actionContainer.HasActions');
+      const actionsContainer = item.querySelector('.Actions.AnonId_actionContainer.HasActions');
       if (!actionsContainer || actionsContainer.querySelector('.confirm-btn')) return;
 
       const button = document.createElement('a');
