@@ -99,34 +99,52 @@ BSC.enableGuestListTable = function () {
   waitForElement("table.guestTable", initGuestTables);
 };
 
-// === Feature: Confirm RSVP Button (targeting .CalendarItem) ===
+// === Feature: Confirm RSVP Button with waitForElement ===
 BSC.addConfirmButton = function () {
-  const calendarItems = document.querySelectorAll('.Calendar .CalendarItem');
+  function injectButton() {
+    const calendarItems = document.querySelectorAll('.Calendar .CalendarItem');
 
-  calendarItems.forEach(item => {
-    const titleEl = item.querySelector('.Title.AnonId_title');
-    const cleanText = titleEl?.textContent?.trim()?.toLowerCase();
+    calendarItems.forEach(item => {
+      const titleEl = item.querySelector('.Title.AnonId_title');
+      const cleanText = titleEl?.textContent?.trim()?.toLowerCase();
 
-    if (cleanText && cleanText.includes('bend swim club team celebration')) {
-      const actionsContainer = item.querySelector('.Actions.AnonId_actionContainer.HasActions');
-      if (!actionsContainer || actionsContainer.querySelector('.confirm-btn')) return;
+      if (cleanText && cleanText.includes('bend swim club team celebration')) {
+        const actionsContainer = item.querySelector('.Actions.AnonId_actionContainer.HasActions');
+        if (!actionsContainer || actionsContainer.querySelector('.confirm-btn')) return;
 
-      const button = document.createElement('a');
-      button.className = 'Button Primary confirm-btn';
-      button.href = 'https://www.bendswimclub.com/page/system/res/219538';
-      button.target = '_blank';
+        const button = document.createElement('a');
+        button.className = 'Button Primary confirm-btn';
+        button.href = 'https://www.bendswimclub.com/page/system/res/219538';
+        button.target = '_blank';
 
-      const icon = document.createElement('icon');
-      icon.className = 'pencil';
+        const icon = document.createElement('icon');
+        icon.className = 'pencil';
 
-      const span = document.createElement('span');
-      span.textContent = 'Confirm RSVP';
+        const span = document.createElement('span');
+        span.textContent = 'Confirm RSVP';
 
-      button.appendChild(icon);
-      button.appendChild(span);
-      actionsContainer.appendChild(button);
-    }
-  });
+        button.appendChild(icon);
+        button.appendChild(span);
+        actionsContainer.appendChild(button);
+      }
+    });
+  }
+
+  function waitForElement(selector, callback, maxAttempts = 20, delay = 300) {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      const el = document.querySelector(selector);
+      if (el) {
+        clearInterval(interval);
+        callback(el);
+      } else if (++attempts >= maxAttempts) {
+        clearInterval(interval);
+        console.warn("BSC: Element not found:", selector);
+      }
+    }, delay);
+  }
+
+  waitForElement('.Calendar .CalendarItem', injectButton);
 };
 
 // === Run when ready ===
