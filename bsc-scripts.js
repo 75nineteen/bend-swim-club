@@ -1,7 +1,24 @@
-window.BSC = window.BSC || {}; // Create a global namespace to hold your functions
+// Create BSC namespace and script registry
+window.BSC = window.BSC || {
+  _initFunctions: [],
 
-// RSVP Button insertion function
-BSC.addRSVPButton = function() {
+  registerInit(fn) {
+    this._initFunctions.push(fn);
+  },
+
+  runAll() {
+    this._initFunctions.forEach(fn => {
+      try {
+        fn();
+      } catch (e) {
+        console.error("BSC script error:", e);
+      }
+    });
+  }
+};
+
+// === Feature: Add RSVP Now Button ===
+BSC.registerInit(function addRSVPButton() {
   const calendarSections = document.querySelectorAll('.Calendar');
 
   calendarSections.forEach(section => {
@@ -9,50 +26,41 @@ BSC.addRSVPButton = function() {
 
     if (titleEl && titleEl.textContent.includes('Bend Swim Club Team Celebration')) {
       const actionsContainer = section.querySelector('.Actions.AnonId_actionContainer.HasActions');
+      if (!actionsContainer || actionsContainer.querySelector('.rsvp-btn')) return;
 
-      if (actionsContainer) {
-        const button = document.createElement('a');
-        button.className = 'Button Primary';
-        button.href = 'https://forms.gle/YjAKW2TxnofkCNSo7';
-        button.target = '_blank';
+      const button = document.createElement('a');
+      button.className = 'Button Primary rsvp-btn';
+      button.href = 'https://forms.gle/YjAKW2TxnofkCNSo7';
+      button.target = '_blank';
 
-        const icon = document.createElement('icon');
-        icon.className = 'pencil';
+      const icon = document.createElement('icon');
+      icon.className = 'pencil';
 
-        const span = document.createElement('span');
-        span.textContent = 'RSVP Now';
+      const span = document.createElement('span');
+      span.textContent = 'RSVP Now';
 
-        button.appendChild(icon);
-        button.appendChild(span);
+      button.appendChild(icon);
+      button.appendChild(span);
 
-        actionsContainer.appendChild(button);
-      } else {
-        console.warn('Actions container not found in this Calendar section.');
-      }
+      actionsContainer.appendChild(button);
     }
   });
-};
+});
 
-// Insert table search and sort
-BSC.enableGuestListTable = function() {
+// === Feature: Guest Table Search & Sort ===
+BSC.registerInit(function enableGuestListTable() {
   const container = document.getElementById("searchContainer");
   const table = document.getElementById("guestTable");
-
-  // Exit quietly if required elements don't exist
-  if (!container || !table) return;
-
-  // Prevent double-initialization
-  if (container.dataset.initialized === "true") return;
+  if (!container || !table || container.dataset.initialized === "true") return;
   container.dataset.initialized = "true";
 
-  // Create and add the search box
   const input = document.createElement("input");
-  input.setAttribute("type", "text");
-  input.setAttribute("id", "searchInput");
-  input.setAttribute("placeholder", "Search...");
+  input.type = "text";
+  input.id = "searchInput";
+  input.placeholder = "Search...";
   container.appendChild(input);
 
-  input.addEventListener("keyup", function() {
+  input.addEventListener("keyup", function () {
     const filter = this.value.toLowerCase();
     const rows = table.querySelectorAll("tbody tr");
     rows.forEach(row => {
@@ -79,4 +87,9 @@ BSC.enableGuestListTable = function() {
     table.setAttribute("data-sort-col", columnIndex);
     table.setAttribute("data-sort-dir", isAsc ? "asc" : "desc");
   }
-};
+});
+
+// === Auto-run all registered scripts ===
+document.addEventListener("DOMContentLoaded", function () {
+  BSC.runAll();
+});
