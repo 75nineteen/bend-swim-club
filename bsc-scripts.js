@@ -67,17 +67,22 @@ BSC.enableGuestListTable = function () {
       if (table.dataset.initialized === "true") return;
       table.dataset.initialized = "true";
 
-      // Insert search input above the TableWrapper, fallback to table
+      // Insert search input into a new thead row
       const input = document.createElement("input");
       input.type = "text";
       input.placeholder = "Search...";
       input.className = "guestTableSearchInput";
 
-      const wrapper = table.closest('.TableWrapper');
-      if (wrapper && wrapper.parentNode) {
-        wrapper.parentNode.insertBefore(input, wrapper);
-      } else {
-        table.parentNode.insertBefore(input, table);
+      const thead = table.querySelector("thead");
+      if (thead) {
+        const th = document.createElement("th");
+        th.colSpan = table.querySelectorAll("thead th").length;
+        th.appendChild(input);
+
+        const tr = document.createElement("tr");
+        tr.appendChild(th);
+
+        thead.insertBefore(tr, thead.firstChild);
       }
 
       input.addEventListener("keyup", function () {
@@ -133,17 +138,24 @@ BSC.enableGuestListTable = function () {
     });
   };
 
-  // Use MutationObserver to detect table after CMS load
-  const observer = new MutationObserver((mutations, obs) => {
-    const table = document.querySelector("table.guestTable");
-    if (table && table.dataset.initialized !== "true") {
-      obs.disconnect(); // stop watching
-      initGuestTables();
-    }
-  });
+  // Wait for table to exist before running logic
+  function waitForElement(selector, callback, maxAttempts = 20, delay = 300) {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      const el = document.querySelector(selector);
+      if (el) {
+        clearInterval(interval);
+        callback(el);
+      } else if (++attempts >= maxAttempts) {
+        clearInterval(interval);
+        console.warn("BSC: Element not found:", selector);
+      }
+    }, delay);
+  }
 
-  observer.observe(document.body, { childList: true, subtree: true });
-  initGuestTables(); // run once in case it's already present
+  waitForElement("table.guestTable", () => {
+    initGuestTables();
+  });
 };
 
 // === Auto-run all registered scripts ===
