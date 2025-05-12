@@ -49,54 +49,59 @@ BSC.registerInit(function addRSVPButton() {
 
 // === Feature: Guest Table Search & Sort ===
 BSC.enableGuestListTable = function () {
-  // Find all guest tables by class
-  const tables = document.querySelectorAll("table.guestTable");
+  const initGuestTables = () => {
+    const tables = document.querySelectorAll("table.guestTable");
 
-  tables.forEach((table, index) => {
-    // Avoid re-initializing
-    if (table.dataset.initialized === "true") return;
-    table.dataset.initialized = "true";
+    tables.forEach((table) => {
+      if (table.dataset.initialized === "true") return;
+      table.dataset.initialized = "true";
 
-    // Insert search input just before the table
-    const searchBox = document.createElement("input");
-    searchBox.type = "text";
-    searchBox.placeholder = "Search...";
-    searchBox.className = "guestTableSearchInput";
+      // Insert search input before the table
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = "Search...";
+      input.className = "guestTableSearchInput";
 
-    table.parentNode.insertBefore(searchBox, table);
+      table.parentNode.insertBefore(input, table);
 
-    // Add filtering behavior
-    searchBox.addEventListener("keyup", function () {
-      const filter = this.value.toLowerCase();
-      const rows = table.querySelectorAll("tbody tr");
-      rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(filter) ? "" : "none";
-      });
-    });
-
-    // Add sortable headers
-    const headers = table.querySelectorAll("th");
-    headers.forEach((header, colIndex) => {
-      header.style.cursor = "pointer";
-      header.addEventListener("click", () => sortTableByColumn(table, colIndex));
-    });
-
-    function sortTableByColumn(table, columnIndex) {
-      const rows = Array.from(table.querySelectorAll("tbody tr"));
-      const isAsc = table.getAttribute("data-sort-col") == columnIndex && table.getAttribute("data-sort-dir") !== "asc";
-
-      rows.sort((a, b) => {
-        const aText = a.children[columnIndex].textContent.trim().toLowerCase();
-        const bText = b.children[columnIndex].textContent.trim().toLowerCase();
-        return aText.localeCompare(bText) * (isAsc ? 1 : -1);
+      input.addEventListener("keyup", function () {
+        const filter = this.value.toLowerCase();
+        const rows = table.querySelectorAll("tbody tr");
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(filter) ? "" : "none";
+        });
       });
 
-      rows.forEach(row => table.querySelector("tbody").appendChild(row));
-      table.setAttribute("data-sort-col", columnIndex);
-      table.setAttribute("data-sort-dir", isAsc ? "asc" : "desc");
+      const headers = table.querySelectorAll("th");
+      headers.forEach((header, colIndex) => {
+        header.style.cursor = "pointer";
+        header.addEventListener("click", () => sortTableByColumn(table, colIndex));
+      });
+
+      function sortTableByColumn(table, columnIndex) {
+        const rows = Array.from(table.querySelectorAll("tbody tr"));
+        const isAsc = table.getAttribute("data-sort-col") == columnIndex && table.getAttribute("data-sort-dir") !== "asc";
+        rows.sort((a, b) => {
+          const aText = a.children[columnIndex].textContent.trim().toLowerCase();
+          const bText = b.children[columnIndex].textContent.trim().toLowerCase();
+          return aText.localeCompare(bText) * (isAsc ? 1 : -1);
+        });
+        rows.forEach(row => table.querySelector("tbody").appendChild(row));
+        table.setAttribute("data-sort-col", columnIndex);
+        table.setAttribute("data-sort-dir", isAsc ? "asc" : "desc");
+      }
+    });
+
+    // If no tables found, retry for a few seconds
+    if (tables.length === 0 && BSC._guestTableRetryCount < 10) {
+      BSC._guestTableRetryCount++;
+      setTimeout(initGuestTables, 300); // Try again in 300ms
     }
-  });
+  };
+
+  BSC._guestTableRetryCount = 0;
+  initGuestTables();
 };
 
 // === Auto-run all registered scripts ===
