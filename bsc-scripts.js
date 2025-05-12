@@ -82,14 +82,26 @@ BSC.enableGuestListTable = function () {
       function sortTableByColumn(table, columnIndex) {
         const rows = Array.from(table.querySelectorAll("tbody tr"));
         const isAsc = table.getAttribute("data-sort-col") == columnIndex && table.getAttribute("data-sort-dir") !== "asc";
+
         rows.sort((a, b) => {
           const aText = a.children[columnIndex].textContent.trim().toLowerCase();
           const bText = b.children[columnIndex].textContent.trim().toLowerCase();
           return aText.localeCompare(bText) * (isAsc ? 1 : -1);
         });
+
         rows.forEach(row => table.querySelector("tbody").appendChild(row));
         table.setAttribute("data-sort-col", columnIndex);
         table.setAttribute("data-sort-dir", isAsc ? "asc" : "desc");
+
+        // Update sort arrows
+        const headers = table.querySelectorAll("th");
+        headers.forEach((header, i) => {
+          // Remove any existing arrows
+          header.textContent = header.textContent.replace(/[\u25B2\u25BC]/g, '').trim();
+          if (i === columnIndex) {
+            header.textContent += isAsc ? ' ▲' : ' ▼';
+          }
+        });
       }
     });
 
