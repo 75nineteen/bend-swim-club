@@ -1,8 +1,8 @@
-// === Guest Table Search & Sort ===
+// === Bend Swim Club Custom Script ===
 window.BSC = window.BSC || {};
 
+// === Feature: Guest Table Search & Sort ===
 BSC.enableGuestListTable = function () {
-  // Load Font Awesome (for sort icons)
   (function loadFontAwesome() {
     if (!document.querySelector('link[href*="font-awesome"]')) {
       const faLink = document.createElement('link');
@@ -20,7 +20,7 @@ BSC.enableGuestListTable = function () {
       if (table.dataset.initialized === "true") return;
       table.dataset.initialized = "true";
 
-      // Insert search input above .TableWrapper (or fallback above table)
+      // Insert search input above .TableWrapper
       const input = document.createElement("input");
       input.type = "text";
       input.placeholder = "Search...";
@@ -42,7 +42,6 @@ BSC.enableGuestListTable = function () {
         });
       });
 
-      // Sortable headers with icons
       const headers = table.querySelectorAll("th");
       headers.forEach((header, colIndex) => {
         header.style.cursor = "pointer";
@@ -84,7 +83,6 @@ BSC.enableGuestListTable = function () {
     });
   }
 
-  // Wait for the table to appear in the DOM
   function waitForElement(selector, callback, maxAttempts = 20, delay = 300) {
     let attempts = 0;
     const interval = setInterval(() => {
@@ -102,11 +100,41 @@ BSC.enableGuestListTable = function () {
   waitForElement("table.guestTable", initGuestTables);
 };
 
-// ✅ Run regardless of document load timing
+// === Feature: Confirm RSVP Button ===
+BSC.addConfirmButton = function () {
+  const calendarSections = document.querySelectorAll('.Calendar');
+
+  calendarSections.forEach(section => {
+    const titleEl = section.querySelector('.Title.AnonId_title');
+    if (titleEl && titleEl.textContent.includes('Bend Swim Club Team Celebration')) {
+      const actionsContainer = section.querySelector('.Actions.AnonId_actionContainer.HasActions');
+      if (!actionsContainer || actionsContainer.querySelector('.confirm-btn')) return;
+
+      const button = document.createElement('a');
+      button.className = 'Button Primary confirm-btn';
+      button.href = 'https://www.bendswimclub.com/page/system/res/219538';
+      button.target = '_blank';
+
+      const icon = document.createElement('icon');
+      icon.className = 'pencil';
+
+      const span = document.createElement('span');
+      span.textContent = 'Confirm RSVP';
+
+      button.appendChild(icon);
+      button.appendChild(span);
+      actionsContainer.appendChild(button);
+    }
+  });
+};
+
+// === Run when ready ===
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", function () {
     BSC.enableGuestListTable();
+    BSC.addConfirmButton();
   });
 } else {
   BSC.enableGuestListTable();
+  BSC.addConfirmButton();
 }
