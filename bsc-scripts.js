@@ -48,46 +48,56 @@ BSC.registerInit(function addRSVPButton() {
 });
 
 // === Feature: Guest Table Search & Sort ===
-BSC.registerInit(function enableGuestListTable() {
-  const container = document.getElementById("searchContainer");
-  const table = document.getElementById("guestTable");
-  if (!container || !table || container.dataset.initialized === "true") return;
-  container.dataset.initialized = "true";
+BSC.enableGuestListTable = function () {
+  // Find all guest tables by class
+  const tables = document.querySelectorAll("table.guestTable");
 
-  const input = document.createElement("input");
-  input.type = "text";
-  input.id = "searchInput";
-  input.placeholder = "Search...";
-  container.appendChild(input);
+  tables.forEach((table, index) => {
+    // Avoid re-initializing
+    if (table.dataset.initialized === "true") return;
+    table.dataset.initialized = "true";
 
-  input.addEventListener("keyup", function () {
-    const filter = this.value.toLowerCase();
-    const rows = table.querySelectorAll("tbody tr");
-    rows.forEach(row => {
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(filter) ? "" : "none";
+    // Insert search input just before the table
+    const searchBox = document.createElement("input");
+    searchBox.type = "text";
+    searchBox.placeholder = "Search...";
+    searchBox.className = "guestTableSearchInput";
+
+    table.parentNode.insertBefore(searchBox, table);
+
+    // Add filtering behavior
+    searchBox.addEventListener("keyup", function () {
+      const filter = this.value.toLowerCase();
+      const rows = table.querySelectorAll("tbody tr");
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(filter) ? "" : "none";
+      });
     });
-  });
 
-  const headers = table.querySelectorAll("th");
-  headers.forEach((header, index) => {
-    header.style.cursor = "pointer";
-    header.addEventListener("click", () => sortTableByColumn(table, index));
-  });
-
-  function sortTableByColumn(table, columnIndex) {
-    const rows = Array.from(table.querySelectorAll("tbody tr"));
-    const isAsc = table.getAttribute("data-sort-col") == columnIndex && table.getAttribute("data-sort-dir") !== "asc";
-    rows.sort((a, b) => {
-      const aText = a.children[columnIndex].textContent.trim().toLowerCase();
-      const bText = b.children[columnIndex].textContent.trim().toLowerCase();
-      return aText.localeCompare(bText) * (isAsc ? 1 : -1);
+    // Add sortable headers
+    const headers = table.querySelectorAll("th");
+    headers.forEach((header, colIndex) => {
+      header.style.cursor = "pointer";
+      header.addEventListener("click", () => sortTableByColumn(table, colIndex));
     });
-    rows.forEach(row => table.querySelector("tbody").appendChild(row));
-    table.setAttribute("data-sort-col", columnIndex);
-    table.setAttribute("data-sort-dir", isAsc ? "asc" : "desc");
-  }
-});
+
+    function sortTableByColumn(table, columnIndex) {
+      const rows = Array.from(table.querySelectorAll("tbody tr"));
+      const isAsc = table.getAttribute("data-sort-col") == columnIndex && table.getAttribute("data-sort-dir") !== "asc";
+
+      rows.sort((a, b) => {
+        const aText = a.children[columnIndex].textContent.trim().toLowerCase();
+        const bText = b.children[columnIndex].textContent.trim().toLowerCase();
+        return aText.localeCompare(bText) * (isAsc ? 1 : -1);
+      });
+
+      rows.forEach(row => table.querySelector("tbody").appendChild(row));
+      table.setAttribute("data-sort-col", columnIndex);
+      table.setAttribute("data-sort-dir", isAsc ? "asc" : "desc");
+    }
+  });
+};
 
 // === Auto-run all registered scripts ===
 document.addEventListener("DOMContentLoaded", function () {
