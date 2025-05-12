@@ -1,9 +1,8 @@
-// BSC namespace
+// === Guest Table Search & Sort ===
 window.BSC = window.BSC || {};
 
-// === Enable guest table search + sort ===
 BSC.enableGuestListTable = function () {
-  // Load Font Awesome if needed
+  // Load Font Awesome (for sort icons)
   (function loadFontAwesome() {
     if (!document.querySelector('link[href*="font-awesome"]')) {
       const faLink = document.createElement('link');
@@ -21,7 +20,7 @@ BSC.enableGuestListTable = function () {
       if (table.dataset.initialized === "true") return;
       table.dataset.initialized = "true";
 
-      // Insert search input above .TableWrapper
+      // Insert search input above .TableWrapper (or fallback above table)
       const input = document.createElement("input");
       input.type = "text";
       input.placeholder = "Search...";
@@ -43,12 +42,11 @@ BSC.enableGuestListTable = function () {
         });
       });
 
-      // Make headers sortable
+      // Sortable headers with icons
       const headers = table.querySelectorAll("th");
       headers.forEach((header, colIndex) => {
         header.style.cursor = "pointer";
 
-        // Add icon if not present
         if (!header.querySelector('.sort-icon')) {
           const icon = document.createElement('span');
           icon.className = 'sort-icon fas fa-sort';
@@ -86,7 +84,7 @@ BSC.enableGuestListTable = function () {
     });
   }
 
-  // Wait for .guestTable to appear
+  // Wait for the table to appear in the DOM
   function waitForElement(selector, callback, maxAttempts = 20, delay = 300) {
     let attempts = 0;
     const interval = setInterval(() => {
@@ -101,12 +99,14 @@ BSC.enableGuestListTable = function () {
     }, delay);
   }
 
-  waitForElement("table.guestTable", () => {
-    initGuestTables();
-  });
+  waitForElement("table.guestTable", initGuestTables);
 };
 
-// Run script
-document.addEventListener("DOMContentLoaded", function () {
+// ✅ Run regardless of document load timing
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    BSC.enableGuestListTable();
+  });
+} else {
   BSC.enableGuestListTable();
-});
+}
