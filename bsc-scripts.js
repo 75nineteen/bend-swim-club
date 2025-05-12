@@ -33,7 +33,50 @@ BSC.addRSVPButton = function() {
   });
 };
 
-// Later you can add more functions like:
-// BSC.doSomethingElse = function() {
-//  console.log('Another function executed!');
-// };
+// Insert table search and sort
+BSC.enableGuestListTable = function() {
+  const container = document.getElementById("searchContainer");
+  const table = document.getElementById("guestTable");
+
+  // Exit quietly if required elements don't exist
+  if (!container || !table) return;
+
+  // Prevent double-initialization
+  if (container.dataset.initialized === "true") return;
+  container.dataset.initialized = "true";
+
+  // Create and add the search box
+  const input = document.createElement("input");
+  input.setAttribute("type", "text");
+  input.setAttribute("id", "searchInput");
+  input.setAttribute("placeholder", "Search...");
+  container.appendChild(input);
+
+  input.addEventListener("keyup", function() {
+    const filter = this.value.toLowerCase();
+    const rows = table.querySelectorAll("tbody tr");
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(filter) ? "" : "none";
+    });
+  });
+
+  const headers = table.querySelectorAll("th");
+  headers.forEach((header, index) => {
+    header.style.cursor = "pointer";
+    header.addEventListener("click", () => sortTableByColumn(table, index));
+  });
+
+  function sortTableByColumn(table, columnIndex) {
+    const rows = Array.from(table.querySelectorAll("tbody tr"));
+    const isAsc = table.getAttribute("data-sort-col") == columnIndex && table.getAttribute("data-sort-dir") !== "asc";
+    rows.sort((a, b) => {
+      const aText = a.children[columnIndex].textContent.trim().toLowerCase();
+      const bText = b.children[columnIndex].textContent.trim().toLowerCase();
+      return aText.localeCompare(bText) * (isAsc ? 1 : -1);
+    });
+    rows.forEach(row => table.querySelector("tbody").appendChild(row));
+    table.setAttribute("data-sort-col", columnIndex);
+    table.setAttribute("data-sort-dir", isAsc ? "asc" : "desc");
+  }
+};
