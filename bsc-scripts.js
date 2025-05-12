@@ -67,22 +67,18 @@ BSC.enableGuestListTable = function () {
       if (table.dataset.initialized === "true") return;
       table.dataset.initialized = "true";
 
-      // Insert search input into a new thead row
+      // Insert search input above the table wrapper (instead of inside <thead>)
       const input = document.createElement("input");
       input.type = "text";
       input.placeholder = "Search...";
       input.className = "guestTableSearchInput";
 
-      const thead = table.querySelector("thead");
-      if (thead) {
-        const th = document.createElement("th");
-        th.colSpan = table.querySelectorAll("thead th").length;
-        th.appendChild(input);
-
-        const tr = document.createElement("tr");
-        tr.appendChild(th);
-
-        thead.insertBefore(tr, thead.firstChild);
+      const wrapper = table.closest('.TableWrapper');
+      if (wrapper && wrapper.parentNode) {
+        wrapper.parentNode.insertBefore(input, wrapper);
+      } else {
+        // fallback: insert above table
+        table.parentNode.insertBefore(input, table);
       }
 
       input.addEventListener("keyup", function () {
@@ -161,7 +157,5 @@ BSC.enableGuestListTable = function () {
 // === Auto-run all registered scripts ===
 document.addEventListener("DOMContentLoaded", function () {
   BSC.runAll();
-
-  // ✅ This is the critical fix — direct call instead of registration
-  BSC.enableGuestListTable();  // ← highlighted change
+  BSC.enableGuestListTable(); // critical fix: call directly
 });
