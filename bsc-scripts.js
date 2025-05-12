@@ -161,4 +161,7 @@ BSC.enableGuestListTable = function () {
 // === Auto-run all registered scripts ===
 document.addEventListener("DOMContentLoaded", function () {
   BSC.runAll();
+
+  // ✅ This is the critical fix — direct call instead of registration
+  BSC.enableGuestListTable();  // ← highlighted change
 });
