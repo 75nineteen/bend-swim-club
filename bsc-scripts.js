@@ -1,16 +1,17 @@
-// === Bend Swim Club Custom Script ===
+// === Guest Table Search & Sort ===
 window.BSC = window.BSC || {};
 
-// === Guest Table Search & Sort ===
 BSC.enableGuestListTable = function () {
-  // Inject Font Awesome
-  if (!document.querySelector('link[href*="font-awesome"]')) {
-    const faLink = document.createElement('link');
-    faLink.rel = 'stylesheet';
-    faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
-    faLink.crossOrigin = 'anonymous';
-    document.head.appendChild(faLink);
-  }
+  // Load Font Awesome (for sort icons)
+  (function loadFontAwesome() {
+    if (!document.querySelector('link[href*="font-awesome"]')) {
+      const faLink = document.createElement('link');
+      faLink.rel = 'stylesheet';
+      faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+      faLink.crossOrigin = 'anonymous';
+      document.head.appendChild(faLink);
+    }
+  })();
 
   function initGuestTables() {
     const tables = document.querySelectorAll("table.guestTable");
@@ -19,6 +20,7 @@ BSC.enableGuestListTable = function () {
       if (table.dataset.initialized === "true") return;
       table.dataset.initialized = "true";
 
+      // Insert search input above .TableWrapper (or fallback above table)
       const input = document.createElement("input");
       input.type = "text";
       input.placeholder = "Search...";
@@ -40,6 +42,7 @@ BSC.enableGuestListTable = function () {
         });
       });
 
+      // Sortable headers with icons
       const headers = table.querySelectorAll("th");
       headers.forEach((header, colIndex) => {
         header.style.cursor = "pointer";
@@ -81,68 +84,29 @@ BSC.enableGuestListTable = function () {
     });
   }
 
-  // Wait for table to exist
-  const check = setInterval(() => {
-    const table = document.querySelector("table.guestTable");
-    if (table) {
-      clearInterval(check);
-      initGuestTables();
-    }
-  }, 300);
-};
-
-// === Confirm RSVP Button — With MutationObserver ===
-BSC.addConfirmButton = function () {
-  function injectButton() {
-    const items = document.querySelectorAll('.Calendar .CalendarItem');
-
-    items.forEach(item => {
-      const titleEl = item.querySelector('.Title.AnonId_title');
-      const cleanText = titleEl?.textContent?.trim()?.toLowerCase();
-
-      if (cleanText && cleanText.includes('bend swim club team celebration')) {
-        const actionsContainer = item.querySelector('.Actions.AnonId_actionContainer.HasActions');
-        if (!actionsContainer || actionsContainer.querySelector('.confirm-btn')) return;
-
-        const button = document.createElement('a');
-        button.className = 'Button Primary confirm-btn';
-        button.href = 'https://www.bendswimclub.com/page/system/res/219538';
-        button.target = '_blank';
-
-        const icon = document.createElement('icon');
-        icon.className = 'pencil';
-
-        const span = document.createElement('span');
-        span.textContent = 'Confirm RSVP';
-
-        button.appendChild(icon);
-        button.appendChild(span);
-        actionsContainer.appendChild(button);
+  // Wait for the table to appear in the DOM
+  function waitForElement(selector, callback, maxAttempts = 20, delay = 300) {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      const el = document.querySelector(selector);
+      if (el) {
+        clearInterval(interval);
+        callback(el);
+      } else if (++attempts >= maxAttempts) {
+        clearInterval(interval);
+        console.warn("BSC: Element not found:", selector);
       }
-    });
+    }, delay);
   }
 
-  const calendar = document.querySelector('.Calendar');
-  if (!calendar) return;
-
-  // Inject immediately
-  injectButton();
-
-  // Re-inject on any DOM changes to calendar items
-  const observer = new MutationObserver(() => {
-    injectButton();
-  });
-
-  observer.observe(calendar, { childList: true, subtree: true });
+  waitForElement("table.guestTable", initGuestTables);
 };
 
-// === Run both features when DOM is ready ===
+// ✅ Run regardless of document load timing
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", function () {
     BSC.enableGuestListTable();
-    BSC.addConfirmButton();
   });
 } else {
   BSC.enableGuestListTable();
-  BSC.addConfirmButton();
 }
