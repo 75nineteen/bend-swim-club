@@ -17,36 +17,6 @@ window.BSC = window.BSC || {
   }
 };
 
-// === Feature: Add RSVP Now Button ===
-BSC.registerInit(function addRSVPButton() {
-  const calendarSections = document.querySelectorAll('.Calendar');
-
-  calendarSections.forEach(section => {
-    const titleEl = section.querySelector('.Title.AnonId_title');
-
-    if (titleEl && titleEl.textContent.includes('Bend Swim Club Team Celebration')) {
-      const actionsContainer = section.querySelector('.Actions.AnonId_actionContainer.HasActions');
-      if (!actionsContainer || actionsContainer.querySelector('.rsvp-btn')) return;
-
-      const button = document.createElement('a');
-      button.className = 'Button Primary rsvp-btn';
-      button.href = 'https://forms.gle/YjAKW2TxnofkCNSo7';
-      button.target = '_blank';
-
-      const icon = document.createElement('icon');
-      icon.className = 'pencil';
-
-      const span = document.createElement('span');
-      span.textContent = 'RSVP Now';
-
-      button.appendChild(icon);
-      button.appendChild(span);
-
-      actionsContainer.appendChild(button);
-    }
-  });
-});
-
 // === Feature: Guest Table Search & Sort with Font Awesome Arrows ===
 BSC.enableGuestListTable = function () {
   // Inject Font Awesome if not already present
