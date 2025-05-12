@@ -67,12 +67,18 @@ BSC.enableGuestListTable = function () {
       if (table.dataset.initialized === "true") return;
       table.dataset.initialized = "true";
 
-      // Insert search input above the table
+      // Insert search input above the TableWrapper, fallback to table
       const input = document.createElement("input");
       input.type = "text";
       input.placeholder = "Search...";
       input.className = "guestTableSearchInput";
-      table.parentNode.insertBefore(input, table);
+
+      const wrapper = table.closest('.TableWrapper');
+      if (wrapper && wrapper.parentNode) {
+        wrapper.parentNode.insertBefore(input, wrapper);
+      } else {
+        table.parentNode.insertBefore(input, table);
+      }
 
       input.addEventListener("keyup", function () {
         const filter = this.value.toLowerCase();
