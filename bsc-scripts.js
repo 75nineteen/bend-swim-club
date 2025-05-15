@@ -110,3 +110,43 @@ if (document.readyState === "loading") {
 } else {
   BSC.enableGuestListTable();
 }
+
+(function () {
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("bscEventSignupForm");
+    const confirmation = document.getElementById("bscFormConfirmation");
+    const notice = document.getElementById("bscUserInfoNotice");
+
+    if (!form) return;
+
+    // If CONTEXT is available from TeamUnify, show the user info
+    if (typeof CONTEXT !== "undefined") {
+      const { accountDisplayName, accountEmail } = CONTEXT;
+
+      if (accountDisplayName && accountEmail) {
+        // Fill hidden fields
+        document.getElementById("accountDisplayName").value = accountDisplayName;
+        document.getElementById("accountEmail").value = accountEmail;
+
+        // Show visible info notice
+        notice.innerHTML = `You are logged in as <strong>${accountDisplayName}</strong> (${accountEmail}). Your RSVP will be recorded with this information.`;
+      } else {
+        notice.innerHTML = `<span style="color: red;">⚠️ We were not able to detect your account information. Please ensure you are logged in.</span>`;
+      }
+    }
+
+    // Handle form submission
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const formObject = Object.fromEntries(formData.entries());
+
+      // TODO: Replace this with your actual data submission logic
+      console.log("RSVP submission:", formObject);
+
+      form.style.display = "none";
+      confirmation.style.display = "block";
+    });
+  });
+})();
