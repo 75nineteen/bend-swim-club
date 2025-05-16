@@ -194,3 +194,44 @@ waitForElement(".bsc-rsvp-form", () => {
     });
   });
 });
+
+// Enable simulated editable cells using input overlays
+function makeCellEditable(cell) {
+  cell.addEventListener("click", function () {
+    // Prevent multiple inputs
+    if (cell.querySelector("input")) return;
+
+    const originalText = cell.innerText.trim();
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = originalText;
+    input.style.width = "100%";
+    input.style.boxSizing = "border-box";
+    input.style.fontSize = "inherit";
+    input.style.border = "none";
+    input.style.padding = "4px";
+
+    // Replace cell contents with input
+    cell.innerHTML = "";
+    cell.appendChild(input);
+    input.focus();
+
+    // Save on blur or Enter key
+    function saveInput() {
+      cell.innerText = input.value.trim() || " ";
+    }
+
+    input.addEventListener("blur", saveInput);
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        input.blur();
+      }
+    });
+  });
+}
+
+// Activate for each editable field
+makeCellEditable(eventCell);
+makeCellEditable(tshirtCell);
+makeCellEditable(notesCell);
