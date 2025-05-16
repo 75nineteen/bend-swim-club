@@ -112,70 +112,68 @@ if (document.readyState === "loading") {
 }
 
 // Form testing
-(function () {
-  document.addEventListener("DOMContentLoaded", function () {
-    const eventCell = document.querySelector(".bsc-event");
-    const tshirtCell = document.querySelector(".bsc-tshirt");
-    const notesCell = document.querySelector(".bsc-notes");
-    const nameCell = document.querySelector(".bsc-name");
-    const emailCell = document.querySelector(".bsc-email");
-    const userInfo = document.querySelector(".bsc-user-info");
-    const submitButton = document.querySelector(".bsc-submit");
-    const confirmation = document.querySelector(".bsc-confirmation");
+function waitForElement(selector, callback, retries = 20, delay = 300) {
+  const el = document.querySelector(selector);
+  if (el) {
+    callback(el);
+  } else if (retries > 0) {
+    setTimeout(() => waitForElement(selector, callback, retries - 1, delay), delay);
+  }
+}
 
-    if (!eventCell || !tshirtCell || !notesCell || !nameCell || !emailCell || !submitButton || !userInfo) return;
+// Wait for the RSVP table to appear, then initialize logic
+waitForElement(".bsc-rsvp-form", () => {
+  const eventCell = document.querySelector(".bsc-event");
+  const tshirtCell = document.querySelector(".bsc-tshirt");
+  const notesCell = document.querySelector(".bsc-notes");
+  const nameCell = document.querySelector(".bsc-name");
+  const emailCell = document.querySelector(".bsc-email");
+  const userInfo = document.querySelector(".bsc-user-info");
+  const submitButton = document.querySelector(".bsc-submit");
+  const confirmation = document.querySelector(".bsc-confirmation");
 
-    // Pull user info from TeamUnify global CONTEXT
-    if (typeof CONTEXT !== "undefined") {
-      const { accountDisplayName, accountEmail } = CONTEXT;
-      if (accountDisplayName && accountEmail) {
-        nameCell.innerText = accountDisplayName;
-        emailCell.innerText = accountEmail;
-        userInfo.innerText = `You are logged in as ${accountDisplayName} (${accountEmail}). Your RSVP will be recorded with this information.`;
-      } else {
-        userInfo.innerText = `⚠️ Could not detect account information.`;
+  // Wait for CONTEXT to load
+  function waitForContext(retries = 10) {
+    if (typeof CONTEXT !== "undefined" && CONTEXT.accountDisplayName && CONTEXT.accountEmail) {
+      const name = CONTEXT.accountDisplayName;
+      const email = CONTEXT.accountEmail;
+
+      if (nameCell) nameCell.innerText = name;
+      if (emailCell) emailCell.innerText = email;
+      if (userInfo) {
+        userInfo.innerText = `You are logged in as ${name} (${email}). Your RSVP will be recorded with this information.`;
+      }
+    } else if (retries > 0) {
+      setTimeout(() => waitForContext(retries - 1), 300);
+    } else {
+      if (userInfo) {
+        userInfo.innerText = `⚠️ Could not detect account information. Please ensure you are logged in.`;
       }
     }
+  }
 
-    // Enable clicking and typing into TDs (fallback if browser blocks it)
-    [eventCell, tshirtCell, notesCell].forEach(cell => {
-      cell.addEventListener("click", function () {
-        const range = document.createRange();
-        const sel = window.getSelection();
-        range.selectNodeContents(cell);
-        range.collapse(false);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      });
-    });
+  waitForContext();
 
-    // Handle RSVP submission
+  if (submitButton) {
     submitButton.addEventListener("click", function (e) {
       e.preventDefault();
 
       const formObject = {
-        event: eventCell.innerText.trim(),
-        tshirt: tshirtCell.innerText.trim(),
-        notes: notesCell.innerText.trim(),
-        accountDisplayName: nameCell.innerText.trim(),
-        accountEmail: emailCell.innerText.trim()
+        event: eventCell?.innerText.trim(),
+        tshirt: tshirtCell?.innerText.trim(),
+        notes: notesCell?.innerText.trim(),
+        accountDisplayName: nameCell?.innerText.trim(),
+        accountEmail: emailCell?.innerText.trim()
       };
 
-      // TODO: Replace this with actual submission logic (webhook, Google Sheet, etc.)
+      // TODO: Replace this with actual data submission logic
       console.log("RSVP Submission:", formObject);
 
-      // Show confirmation
-      if (confirmation) {
-        confirmation.style.display = "inline";
-      }
-
-      // Optional: disable further editing
-      [eventCell, tshirtCell, notesCell].forEach(cell => {
-        cell.contentEditable = "false";
-        cell.style.opacity = 0.6;
-      });
-
+      if (confirmation) confirmation.style.display = "inline";
       submitButton.style.display = "none";
+      [eventCell, tshirtCell, notesCell].forEach(cell => {
+        if (cell) cell.style.opacity = 0.6;
+      });
     });
-  });
-})();
+  }
+});
