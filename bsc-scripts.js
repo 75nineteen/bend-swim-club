@@ -195,33 +195,41 @@ waitForElement(".bsc-rsvp-form", () => {
   });
 });
 
-// Enable simulated editable cells using input overlays
-function makeCellEditable(cell, placeholder) {
+// Simulated form field behavior using injected input elements
+function makeCellEditable(cell, placeholderText) {
+  if (!cell) return;
+
+  // Initialize cell with placeholder if empty
+  if (!cell.innerText.trim()) {
+    cell.innerText = placeholderText;
+  }
+
   cell.addEventListener("click", function () {
-    // Prevent re-editing if already active
+    // Prevent injecting multiple inputs
     if (cell.querySelector("input")) return;
 
-    const currentValue = cell.innerText.trim();
+    const existingText = cell.innerText.trim();
     const input = document.createElement("input");
     input.type = "text";
-    input.value = (currentValue === placeholder) ? "" : currentValue;
+    input.value = existingText === placeholderText ? "" : existingText;
     input.style.width = "100%";
     input.style.boxSizing = "border-box";
     input.style.fontSize = "inherit";
-    input.style.border = "none";
+    input.style.border = "1px solid #ccc";
     input.style.padding = "4px";
 
-    cell.innerHTML = ""; // Clear out placeholder
+    // Clear the cell and insert the input
+    cell.innerHTML = "";
     cell.appendChild(input);
     input.focus();
 
-    // On blur or Enter, save the value and restore plain text
-    function save() {
-      const value = input.value.trim();
-      cell.innerText = value || placeholder;
+    // Handle blur or enter key
+    function finalize() {
+      const newValue = input.value.trim();
+      cell.innerText = newValue || placeholderText;
     }
 
-    input.addEventListener("blur", save);
+    input.addEventListener("blur", finalize);
     input.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
         e.preventDefault();
@@ -231,7 +239,7 @@ function makeCellEditable(cell, placeholder) {
   });
 }
 
-// Initialize simulated editable cells with placeholders
+// Initialize editable behavior after everything has loaded
 makeCellEditable(eventCell, "Click here and type");
 makeCellEditable(tshirtCell, "Click here and type");
 makeCellEditable(notesCell, "Click here and type");
