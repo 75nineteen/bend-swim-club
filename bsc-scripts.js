@@ -111,7 +111,7 @@ if (document.readyState === "loading") {
   BSC.enableGuestListTable();
 }
 
-// Form testing
+// 🚀 Form testing
 function waitForElement(selector, callback, retries = 20, delay = 300) {
   const el = document.querySelector(selector);
   if (el) {
@@ -135,7 +135,7 @@ waitForElement(".bsc-rsvp-form", () => {
   const submitButton = table.querySelector(".bsc-submit");
   const confirmation = table.querySelector(".bsc-confirmation");
 
-  // Insert .bsc-user-info row if it doesn't exist
+  // Add or find .bsc-user-info row
   let userInfo = table.querySelector(".bsc-user-info");
   if (!userInfo) {
     const row = document.createElement("tr");
@@ -157,6 +157,7 @@ waitForElement(".bsc-rsvp-form", () => {
     return;
   }
 
+  // Load CONTEXT data
   function waitForContext(retries = 10) {
     if (typeof CONTEXT !== "undefined" && CONTEXT.accountDisplayName && CONTEXT.accountEmail) {
       console.log("Loaded CONTEXT:", CONTEXT);
@@ -173,6 +174,51 @@ waitForElement(".bsc-rsvp-form", () => {
 
   waitForContext();
 
+  // Simulated editable cells
+  function makeCellEditable(cell, placeholderText) {
+    if (!cell) return;
+
+    if (!cell.innerText.trim()) {
+      cell.innerText = placeholderText;
+    }
+
+    cell.addEventListener("click", function () {
+      if (cell.querySelector("input")) return;
+
+      const existingText = cell.innerText.trim();
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = existingText === placeholderText ? "" : existingText;
+      input.style.width = "100%";
+      input.style.boxSizing = "border-box";
+      input.style.fontSize = "inherit";
+      input.style.border = "1px solid #ccc";
+      input.style.padding = "4px";
+
+      cell.innerHTML = "";
+      cell.appendChild(input);
+      input.focus();
+
+      function finalize() {
+        const newValue = input.value.trim();
+        cell.innerText = newValue || placeholderText;
+      }
+
+      input.addEventListener("blur", finalize);
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          input.blur();
+        }
+      });
+    });
+  }
+
+  makeCellEditable(eventCell, "Click here and type");
+  makeCellEditable(tshirtCell, "Click here and type");
+  makeCellEditable(notesCell, "Click here and type");
+
+  // Form submission
   submitButton.addEventListener("click", function (e) {
     e.preventDefault();
 
@@ -194,52 +240,3 @@ waitForElement(".bsc-rsvp-form", () => {
     });
   });
 });
-
-// Simulated form field behavior using injected input elements
-function makeCellEditable(cell, placeholderText) {
-  if (!cell) return;
-
-  // Initialize cell with placeholder if empty
-  if (!cell.innerText.trim()) {
-    cell.innerText = placeholderText;
-  }
-
-  cell.addEventListener("click", function () {
-    // Prevent injecting multiple inputs
-    if (cell.querySelector("input")) return;
-
-    const existingText = cell.innerText.trim();
-    const input = document.createElement("input");
-    input.type = "text";
-    input.value = existingText === placeholderText ? "" : existingText;
-    input.style.width = "100%";
-    input.style.boxSizing = "border-box";
-    input.style.fontSize = "inherit";
-    input.style.border = "1px solid #ccc";
-    input.style.padding = "4px";
-
-    // Clear the cell and insert the input
-    cell.innerHTML = "";
-    cell.appendChild(input);
-    input.focus();
-
-    // Handle blur or enter key
-    function finalize() {
-      const newValue = input.value.trim();
-      cell.innerText = newValue || placeholderText;
-    }
-
-    input.addEventListener("blur", finalize);
-    input.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        input.blur();
-      }
-    });
-  });
-}
-
-// Initialize editable behavior after everything has loaded
-makeCellEditable(eventCell, "Click here and type");
-makeCellEditable(tshirtCell, "Click here and type");
-makeCellEditable(notesCell, "Click here and type");
