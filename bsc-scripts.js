@@ -115,14 +115,17 @@ if (document.readyState === "loading") {
 function waitForElement(selector, callback, retries = 20, delay = 300) {
   const el = document.querySelector(selector);
   if (el) {
+    console.log("Found element:", selector);
     callback(el);
   } else if (retries > 0) {
+    console.log("Waiting for element:", selector);
     setTimeout(() => waitForElement(selector, callback, retries - 1, delay), delay);
+  } else {
+    console.warn("Failed to find element:", selector);
   }
 }
 
-// Wait for the RSVP table to appear, then initialize logic
-waitForElement(".bsc-rsvp-form", () => {
+waitForElement(".bsc-user-info", () => {
   const eventCell = document.querySelector(".bsc-event");
   const tshirtCell = document.querySelector(".bsc-tshirt");
   const notesCell = document.querySelector(".bsc-notes");
@@ -132,48 +135,45 @@ waitForElement(".bsc-rsvp-form", () => {
   const submitButton = document.querySelector(".bsc-submit");
   const confirmation = document.querySelector(".bsc-confirmation");
 
-  // Wait for CONTEXT to load
+  if (!eventCell || !tshirtCell || !notesCell || !nameCell || !emailCell || !userInfo || !submitButton) {
+    console.warn("Missing expected RSVP elements.");
+    return;
+  }
+
   function waitForContext(retries = 10) {
     if (typeof CONTEXT !== "undefined" && CONTEXT.accountDisplayName && CONTEXT.accountEmail) {
-      const name = CONTEXT.accountDisplayName;
-      const email = CONTEXT.accountEmail;
-
-      if (nameCell) nameCell.innerText = name;
-      if (emailCell) emailCell.innerText = email;
-      if (userInfo) {
-        userInfo.innerText = `You are logged in as ${name} (${email}). Your RSVP will be recorded with this information.`;
-      }
+      console.log("CONTEXT loaded:", CONTEXT);
+      nameCell.innerText = CONTEXT.accountDisplayName;
+      emailCell.innerText = CONTEXT.accountEmail;
+      userInfo.innerText = "You are logged in as " + CONTEXT.accountDisplayName + " (" + CONTEXT.accountEmail + "). Your RSVP will be recorded with this information.";
     } else if (retries > 0) {
+      console.log("Waiting for CONTEXT...");
       setTimeout(() => waitForContext(retries - 1), 300);
     } else {
-      if (userInfo) {
-        userInfo.innerText = `⚠️ Could not detect account information. Please ensure you are logged in.`;
-      }
+      userInfo.innerText = "Could not detect account information. Please ensure you are logged in.";
     }
   }
 
   waitForContext();
 
-  if (submitButton) {
-    submitButton.addEventListener("click", function (e) {
-      e.preventDefault();
+  submitButton.addEventListener("click", function (e) {
+    e.preventDefault();
 
-      const formObject = {
-        event: eventCell?.innerText.trim(),
-        tshirt: tshirtCell?.innerText.trim(),
-        notes: notesCell?.innerText.trim(),
-        accountDisplayName: nameCell?.innerText.trim(),
-        accountEmail: emailCell?.innerText.trim()
-      };
+    const formObject = {
+      event: eventCell.innerText.trim(),
+      tshirt: tshirtCell.innerText.trim(),
+      notes: notesCell.innerText.trim(),
+      accountDisplayName: nameCell.innerText.trim(),
+      accountEmail: emailCell.innerText.trim()
+    };
 
-      // TODO: Replace this with actual data submission logic
-      console.log("RSVP Submission:", formObject);
+    console.log("RSVP Submission:", formObject);
 
-      if (confirmation) confirmation.style.display = "inline";
-      submitButton.style.display = "none";
-      [eventCell, tshirtCell, notesCell].forEach(cell => {
-        if (cell) cell.style.opacity = 0.6;
-      });
+    if (confirmation) confirmation.style.display = "inline";
+    submitButton.style.display = "none";
+
+    [eventCell, tshirtCell, notesCell].forEach(cell => {
+      cell.style.opacity = 0.6;
     });
-  }
+  });
 });
