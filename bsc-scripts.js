@@ -111,42 +111,71 @@ if (document.readyState === "loading") {
   BSC.enableGuestListTable();
 }
 
+// Form testing
 (function () {
   document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("bscEventSignupForm");
-    const confirmation = document.getElementById("bscFormConfirmation");
-    const notice = document.getElementById("bscUserInfoNotice");
+    const eventCell = document.querySelector(".bsc-event");
+    const tshirtCell = document.querySelector(".bsc-tshirt");
+    const notesCell = document.querySelector(".bsc-notes");
+    const nameCell = document.querySelector(".bsc-name");
+    const emailCell = document.querySelector(".bsc-email");
+    const userInfo = document.querySelector(".bsc-user-info");
+    const submitButton = document.querySelector(".bsc-submit");
+    const confirmation = document.querySelector(".bsc-confirmation");
 
-    if (!form) return;
+    if (!eventCell || !tshirtCell || !notesCell || !nameCell || !emailCell || !submitButton || !userInfo) return;
 
-    // If CONTEXT is available from TeamUnify, show the user info
+    // Pull user info from TeamUnify global CONTEXT
     if (typeof CONTEXT !== "undefined") {
       const { accountDisplayName, accountEmail } = CONTEXT;
-
       if (accountDisplayName && accountEmail) {
-        // Fill hidden fields
-        document.getElementById("accountDisplayName").value = accountDisplayName;
-        document.getElementById("accountEmail").value = accountEmail;
-
-        // Show visible info notice
-        notice.innerHTML = `You are logged in as <strong>${accountDisplayName}</strong> (${accountEmail}). Your RSVP will be recorded with this information.`;
+        nameCell.innerText = accountDisplayName;
+        emailCell.innerText = accountEmail;
+        userInfo.innerText = `You are logged in as ${accountDisplayName} (${accountEmail}). Your RSVP will be recorded with this information.`;
       } else {
-        notice.innerHTML = `<span style="color: red;">⚠️ We were not able to detect your account information. Please ensure you are logged in.</span>`;
+        userInfo.innerText = `⚠️ Could not detect account information.`;
       }
     }
 
-    // Handle form submission
-    form.addEventListener("submit", function (e) {
+    // Enable clicking and typing into TDs (fallback if browser blocks it)
+    [eventCell, tshirtCell, notesCell].forEach(cell => {
+      cell.addEventListener("click", function () {
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(cell);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      });
+    });
+
+    // Handle RSVP submission
+    submitButton.addEventListener("click", function (e) {
       e.preventDefault();
 
-      const formData = new FormData(form);
-      const formObject = Object.fromEntries(formData.entries());
+      const formObject = {
+        event: eventCell.innerText.trim(),
+        tshirt: tshirtCell.innerText.trim(),
+        notes: notesCell.innerText.trim(),
+        accountDisplayName: nameCell.innerText.trim(),
+        accountEmail: emailCell.innerText.trim()
+      };
 
-      // TODO: Replace this with your actual data submission logic
-      console.log("RSVP submission:", formObject);
+      // TODO: Replace this with actual submission logic (webhook, Google Sheet, etc.)
+      console.log("RSVP Submission:", formObject);
 
-      form.style.display = "none";
-      confirmation.style.display = "block";
+      // Show confirmation
+      if (confirmation) {
+        confirmation.style.display = "inline";
+      }
+
+      // Optional: disable further editing
+      [eventCell, tshirtCell, notesCell].forEach(cell => {
+        cell.contentEditable = "false";
+        cell.style.opacity = 0.6;
+      });
+
+      submitButton.style.display = "none";
     });
   });
 })();
