@@ -125,7 +125,7 @@ function waitForElement(selector, callback, retries = 20, delay = 300) {
   }
 }
 
-waitForElement(".bsc-user-info", () => {
+waitForElement(".bsc-rsvp-form", () => {
   const eventCell = document.querySelector(".bsc-event");
   const tshirtCell = document.querySelector(".bsc-tshirt");
   const notesCell = document.querySelector(".bsc-notes");
