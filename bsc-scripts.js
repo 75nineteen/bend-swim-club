@@ -126,23 +126,40 @@ function waitForElement(selector, callback, retries = 20, delay = 300) {
 }
 
 waitForElement(".bsc-rsvp-form", () => {
-  const eventCell = document.querySelector(".bsc-event");
-  const tshirtCell = document.querySelector(".bsc-tshirt");
-  const notesCell = document.querySelector(".bsc-notes");
-  const nameCell = document.querySelector(".bsc-name");
-  const emailCell = document.querySelector(".bsc-email");
-  const userInfo = document.querySelector(".bsc-user-info");
-  const submitButton = document.querySelector(".bsc-submit");
-  const confirmation = document.querySelector(".bsc-confirmation");
+  const table = document.querySelector(".bsc-rsvp-form");
+  const eventCell = table.querySelector(".bsc-event");
+  const tshirtCell = table.querySelector(".bsc-tshirt");
+  const notesCell = table.querySelector(".bsc-notes");
+  const nameCell = table.querySelector(".bsc-name");
+  const emailCell = table.querySelector(".bsc-email");
+  const submitButton = table.querySelector(".bsc-submit");
+  const confirmation = table.querySelector(".bsc-confirmation");
 
-  if (!eventCell || !tshirtCell || !notesCell || !nameCell || !emailCell || !userInfo || !submitButton) {
-    console.warn("Missing expected RSVP elements.");
+  // Insert .bsc-user-info row if it doesn't exist
+  let userInfo = table.querySelector(".bsc-user-info");
+  if (!userInfo) {
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.setAttribute("colspan", "2");
+    const strong = document.createElement("strong");
+    strong.className = "bsc-user-info";
+    cell.appendChild(strong);
+    row.appendChild(cell);
+    const tbody = table.querySelector("tbody");
+    if (tbody) {
+      tbody.insertBefore(row, tbody.firstChild);
+      userInfo = strong;
+    }
+  }
+
+  if (!eventCell || !tshirtCell || !notesCell || !nameCell || !emailCell || !submitButton || !confirmation || !userInfo) {
+    console.warn("Missing one or more expected RSVP elements.");
     return;
   }
 
   function waitForContext(retries = 10) {
     if (typeof CONTEXT !== "undefined" && CONTEXT.accountDisplayName && CONTEXT.accountEmail) {
-      console.log("CONTEXT loaded:", CONTEXT);
+      console.log("Loaded CONTEXT:", CONTEXT);
       nameCell.innerText = CONTEXT.accountDisplayName;
       emailCell.innerText = CONTEXT.accountEmail;
       userInfo.innerText = "You are logged in as " + CONTEXT.accountDisplayName + " (" + CONTEXT.accountEmail + "). Your RSVP will be recorded with this information.";
@@ -169,7 +186,7 @@ waitForElement(".bsc-rsvp-form", () => {
 
     console.log("RSVP Submission:", formObject);
 
-    if (confirmation) confirmation.style.display = "inline";
+    confirmation.style.display = "inline";
     submitButton.style.display = "none";
 
     [eventCell, tshirtCell, notesCell].forEach(cell => {
