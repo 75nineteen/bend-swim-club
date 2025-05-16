@@ -196,32 +196,32 @@ waitForElement(".bsc-rsvp-form", () => {
 });
 
 // Enable simulated editable cells using input overlays
-function makeCellEditable(cell) {
+function makeCellEditable(cell, placeholder) {
   cell.addEventListener("click", function () {
-    // Prevent multiple inputs
+    // Prevent re-editing if already active
     if (cell.querySelector("input")) return;
 
-    const originalText = cell.innerText.trim();
+    const currentValue = cell.innerText.trim();
     const input = document.createElement("input");
     input.type = "text";
-    input.value = originalText;
+    input.value = (currentValue === placeholder) ? "" : currentValue;
     input.style.width = "100%";
     input.style.boxSizing = "border-box";
     input.style.fontSize = "inherit";
     input.style.border = "none";
     input.style.padding = "4px";
 
-    // Replace cell contents with input
-    cell.innerHTML = "";
+    cell.innerHTML = ""; // Clear out placeholder
     cell.appendChild(input);
     input.focus();
 
-    // Save on blur or Enter key
-    function saveInput() {
-      cell.innerText = input.value.trim() || " ";
+    // On blur or Enter, save the value and restore plain text
+    function save() {
+      const value = input.value.trim();
+      cell.innerText = value || placeholder;
     }
 
-    input.addEventListener("blur", saveInput);
+    input.addEventListener("blur", save);
     input.addEventListener("keydown", function (e) {
       if (e.key === "Enter") {
         e.preventDefault();
@@ -231,7 +231,7 @@ function makeCellEditable(cell) {
   });
 }
 
-// Activate for each editable field
-makeCellEditable(eventCell);
-makeCellEditable(tshirtCell);
-makeCellEditable(notesCell);
+// Initialize simulated editable cells with placeholders
+makeCellEditable(eventCell, "Click here and type");
+makeCellEditable(tshirtCell, "Click here and type");
+makeCellEditable(notesCell, "Click here and type");
