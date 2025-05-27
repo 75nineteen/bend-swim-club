@@ -267,34 +267,29 @@ BSC.addEventActionButton = function () {
     const eventBoxes = eventsSection.querySelectorAll('.EventRow, .Row, [class*="Event"]'); // Add more specific selectors if needed
 
     eventBoxes.forEach(eventBox => {
-      // Find event title – adjust selector for your site structure
-      const titleEl = eventBox.querySelector('.Content .Title, .Content h3, .Content h2, .Content h1');
-      if (!titleEl) return; // No title, skip
-
-      const eventTitle = titleEl.textContent.trim();
-
-      // Only add button for Team Fiesta Gathering (add more cases as needed)
-      if (/team fiesta gathering/i.test(eventTitle)) {
-        // Prevent duplicate buttons (in case of re-runs)
+      // Find all possible title elements inside the .Content div
+      const contentDiv = eventBox.querySelector('.Content');
+      if (!contentDiv) return;
+      
+      const titleEls = contentDiv.querySelectorAll('.Title, h3, h2, h1');
+      let foundFiesta = false;
+      titleEls.forEach(el => {
+        if (/team fiesta gathering/i.test(el.textContent.trim())) {
+          foundFiesta = true;
+        }
+      });
+      
+      if (foundFiesta) {
+        // Prevent duplicate buttons
         if (eventBox.querySelector('.bsc-event-action-btn')) return;
-
-        // Find the .Content div to insert after
-        const contentDiv = eventBox.querySelector('.Content');
-        if (!contentDiv) return;
-
-        // Create the button
+      
+        // Create and insert the RSVP button (same as before)
         const btn = document.createElement('a');
         btn.href = 'https://forms.gle/SKD1o1vMaMSrEKqf8';
         btn.target = '_blank';
         btn.rel = 'noopener noreferrer';
-        btn.className = 'bsc-event-action-btn'; // Custom class for future reference
-
-        // Copy styling from "Edit Commitment" (assume class is 'EditCommitmentButton', adjust if needed)
-        btn.classList.add('EditCommitmentButton'); // If you inspect the real button and the class is different, update here!
-
+        btn.className = 'bsc-event-action-btn EditCommitmentButton';
         btn.innerText = 'RSVP for Fiesta Gathering';
-
-        // Insert after .Content div
         contentDiv.parentNode.insertBefore(btn, contentDiv.nextSibling);
       }
     });
