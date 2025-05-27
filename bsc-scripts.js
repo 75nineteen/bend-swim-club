@@ -267,30 +267,37 @@ BSC.addEventActionButton = function () {
     const eventBoxes = eventsSection.querySelectorAll('.EventRow, .Row, [class*="Event"]'); // Add more specific selectors if needed
 
     eventBoxes.forEach(eventBox => {
-      // Find all possible title elements inside the .Content div
+      // Find the .Content div in the event box
       const contentDiv = eventBox.querySelector('.Content');
       if (!contentDiv) return;
-      
-      const titleEls = contentDiv.querySelectorAll('.Title, h3, h2, h1');
+
+      // Find all possible title elements, including <a class="Title">
+      const titleEls = contentDiv.querySelectorAll('a.Title, .Title, h3, h2, h1');
       let foundFiesta = false;
       titleEls.forEach(el => {
+        // Debugging: Log the event title text
+        // console.log('Event title text:', el.textContent.trim());
         if (/team fiesta gathering/i.test(el.textContent.trim())) {
           foundFiesta = true;
         }
       });
-      
+
       if (foundFiesta) {
-        // Prevent duplicate buttons
+        // Prevent duplicate buttons (in case of re-runs)
         if (eventBox.querySelector('.bsc-event-action-btn')) return;
-      
-        // Create and insert the RSVP button (same as before)
+
+        // Create the button
         const btn = document.createElement('a');
         btn.href = 'https://forms.gle/SKD1o1vMaMSrEKqf8';
         btn.target = '_blank';
         btn.rel = 'noopener noreferrer';
         btn.className = 'bsc-event-action-btn EditCommitmentButton';
         btn.innerText = 'RSVP for Fiesta Gathering';
+
+        // Insert after .Content div
         contentDiv.parentNode.insertBefore(btn, contentDiv.nextSibling);
+        // Debugging: Log success
+        // console.log('RSVP button inserted for Team Fiesta Gathering');
       }
     });
   }
