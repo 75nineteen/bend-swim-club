@@ -240,3 +240,75 @@ waitForElement(".bsc-rsvp-form", () => {
     });
   });
 });
+
+// === BSC Upcoming Event Button Injection ===
+// This function waits for the homepage upcoming events section and injects a button
+// (styled like "Edit Commitment") into the "Team Fiesta Gathering" event box,
+// immediately after its .Content div. Easily extensible for other events.
+BSC.addEventActionButton = function () {
+  // Helper: Waits for elements to appear in the DOM
+  function waitForElement(selector, callback, retries = 20, delay = 300) {
+    const el = document.querySelector(selector);
+    if (el) {
+      callback(el);
+    } else if (retries > 0) {
+      setTimeout(() => waitForElement(selector, callback, retries - 1, delay), delay);
+    } // else: give up silently
+  }
+
+  // Main logic: Finds all matching event boxes and adds buttons
+  function injectButton() {
+    // Select the CMS upcoming events section (matches homepage section)
+    const eventsSection = document.querySelector('.CMSComponentUpcomingEvents');
+    if (!eventsSection) return; // Section not found
+
+    // For future-proofing, target all event "boxes" inside this section
+    // (Assuming each event is a .EventRow or similar; adjust selector as needed)
+    const eventBoxes = eventsSection.querySelectorAll('.EventRow, .Row, [class*="Event"]'); // Add more specific selectors if needed
+
+    eventBoxes.forEach(eventBox => {
+      // Find event title – adjust selector for your site structure
+      const titleEl = eventBox.querySelector('.Content .Title, .Content h3, .Content h2, .Content h1');
+      if (!titleEl) return; // No title, skip
+
+      const eventTitle = titleEl.textContent.trim();
+
+      // Only add button for Team Fiesta Gathering (add more cases as needed)
+      if (/team fiesta gathering/i.test(eventTitle)) {
+        // Prevent duplicate buttons (in case of re-runs)
+        if (eventBox.querySelector('.bsc-event-action-btn')) return;
+
+        // Find the .Content div to insert after
+        const contentDiv = eventBox.querySelector('.Content');
+        if (!contentDiv) return;
+
+        // Create the button
+        const btn = document.createElement('a');
+        btn.href = 'https://forms.gle/SKD1o1vMaMSrEKqf8';
+        btn.target = '_blank';
+        btn.rel = 'noopener noreferrer';
+        btn.className = 'bsc-event-action-btn'; // Custom class for future reference
+
+        // Copy styling from "Edit Commitment" (assume class is 'EditCommitmentButton', adjust if needed)
+        btn.classList.add('EditCommitmentButton'); // If you inspect the real button and the class is different, update here!
+
+        btn.innerText = 'RSVP for Fiesta Gathering';
+
+        // Insert after .Content div
+        contentDiv.parentNode.insertBefore(btn, contentDiv.nextSibling);
+      }
+    });
+  }
+
+  // Wait for the main CMS section to be present before running injectButton
+  waitForElement('.CMSComponentUpcomingEvents', injectButton);
+};
+
+// ✅ Call this function on load (after DOM ready)
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    BSC.addEventActionButton();
+  });
+} else {
+  BSC.addEventActionButton();
+}
