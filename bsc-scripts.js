@@ -244,7 +244,7 @@ waitForElement(".bsc-rsvp-form", () => {
 // === BSC Upcoming Event Button Injection ===
 // This function waits for the homepage upcoming events section and injects a button
 // (styled like "Edit Commitment") into the "Team Fiesta Gathering" event box,
-// immediately after its .Content div. Easily extensible for other events.
+// inside its .Actions.AnonId_actionContainer div.
 BSC.addEventActionButton = function () {
   // Helper: Waits for elements to appear in the DOM
   function waitForElement(selector, callback, retries = 20, delay = 300) {
@@ -275,18 +275,20 @@ BSC.addEventActionButton = function () {
       const titleEls = contentDiv.querySelectorAll('a.Title, .Title, h3, h2, h1');
       let foundFiesta = false;
       titleEls.forEach(el => {
-        // Debugging: Log the event title text
-        // console.log('Event title text:', el.textContent.trim());
         if (/team fiesta gathering/i.test(el.textContent.trim())) {
           foundFiesta = true;
         }
       });
 
       if (foundFiesta) {
-        // Prevent duplicate buttons (in case of re-runs)
-        if (eventBox.querySelector('.bsc-event-action-btn')) return;
+        // Find the Actions container
+        const actionsDiv = eventBox.querySelector('div.Actions.AnonId_actionContainer');
+        if (!actionsDiv) return;
 
-        // Create the button
+        // Prevent duplicate buttons
+        if (actionsDiv.querySelector('.bsc-event-action-btn')) return;
+
+        // Create the RSVP button
         const btn = document.createElement('a');
         btn.href = 'https://forms.gle/SKD1o1vMaMSrEKqf8';
         btn.target = '_blank';
@@ -294,10 +296,10 @@ BSC.addEventActionButton = function () {
         btn.className = 'bsc-event-action-btn EditCommitmentButton';
         btn.innerText = 'RSVP for Fiesta Gathering';
 
-        // Insert after .Content div
-        contentDiv.parentNode.insertBefore(btn, contentDiv.nextSibling);
-        // Debugging: Log success
-        // console.log('RSVP button inserted for Team Fiesta Gathering');
+        // Insert button as the last child of the Actions container
+        actionsDiv.appendChild(btn);
+        // Optionally: log for debug
+        // console.log('RSVP button injected for Team Fiesta Gathering');
       }
     });
   }
