@@ -242,52 +242,54 @@ waitForElement(".bsc-rsvp-form", () => {
 });
 
 // === BSC Upcoming Event Button Injection ===
-// This function waits for the homepage upcoming events section and injects a button
-// (styled like "Edit Commitment") into the "Team Fiesta Gathering" event box,
-// inside its .Actions.AnonId_actionContainer div, using the sibling structure.
+// This function waits for the homepage upcoming events section and injects a styled button
+// into the "Team Fiesta Gathering" event box, inside its .Actions.AnonId_actionContainer div.
 BSC.addEventActionButton = function () {
   // Helper: Waits for elements to appear in the DOM
-  function waitForElement(selector, callback, retries = 20, delay = 300) {
-    const el = document.querySelector(selector);
+  function waitForEventSection(callback, retries = 20, delay = 300) {
+    const el = document.querySelector('.CMSComponentUpcomingEvents');
     if (el) {
       callback(el);
     } else if (retries > 0) {
-      setTimeout(() => waitForElement(selector, callback, retries - 1, delay), delay);
+      setTimeout(() => waitForEventSection(callback, retries - 1, delay), delay);
     }
   }
 
   function injectButton() {
-    // For every ContentWrapper in the events section
     document.querySelectorAll('.CMSComponentUpcomingEvents .ContentWrapper').forEach(wrapper => {
       const contentDiv = wrapper.querySelector('.Content');
       if (!contentDiv) return;
 
-      // Find the title in this Content div
       const titleEl = contentDiv.querySelector('a.Title');
       if (!titleEl) return;
 
       if (/team fiesta gathering/i.test(titleEl.textContent.trim())) {
-        // Find the Actions div (sibling of Content within the same wrapper)
         const actionsDiv = wrapper.querySelector('.Actions.AnonId_actionContainer');
         if (!actionsDiv) return;
 
         // Prevent duplicate button
-        if (actionsDiv.querySelector('.bsc-event-action-btn')) return;
+        if (actionsDiv.querySelector('.Button.Primary')) return;
 
-        // Create and append the RSVP button
+        // Create and append the RSVP button with desired HTML and classes
         const btn = document.createElement('a');
         btn.href = 'https://forms.gle/SKD1o1vMaMSrEKqf8';
         btn.target = '_blank';
-        btn.rel = 'noopener noreferrer';
-        btn.className = 'bsc-event-action-btn EditCommitmentButton';
-        btn.innerText = 'RSVP for Fiesta Gathering';
+        btn.className = 'Button Primary';
+        btn.innerHTML = '<icon class="pencil"></icon><span>RSVP Now</span>';
         actionsDiv.appendChild(btn);
       }
     });
   }
 
-  // Wait for the main CMS section to be present before running injectButton
-  waitForElement('.CMSComponentUpcomingEvents', injectButton);
+  // MutationObserver to detect late loading events/cards
+  waitForEventSection(eventsSection => {
+    const observer = new MutationObserver(() => {
+      injectButton();
+    });
+    observer.observe(eventsSection, { childList: true, subtree: true });
+    // Initial run
+    injectButton();
+  });
 };
 
 // ✅ Call this function on load (after DOM ready)
