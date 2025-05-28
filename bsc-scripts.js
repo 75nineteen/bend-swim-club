@@ -244,7 +244,7 @@ waitForElement(".bsc-rsvp-form", () => {
 // === BSC Upcoming Event Button Injection ===
 // This function waits for the homepage upcoming events section and injects a button
 // (styled like "Edit Commitment") into the "Team Fiesta Gathering" event box,
-// inside its .Actions.AnonId_actionContainer div.
+// inside its .Actions.AnonId_actionContainer div, using the sibling structure.
 BSC.addEventActionButton = function () {
   // Helper: Waits for elements to appear in the DOM
   function waitForElement(selector, callback, retries = 20, delay = 300) {
@@ -253,53 +253,35 @@ BSC.addEventActionButton = function () {
       callback(el);
     } else if (retries > 0) {
       setTimeout(() => waitForElement(selector, callback, retries - 1, delay), delay);
-    } // else: give up silently
+    }
   }
 
-  // Main logic: Finds all matching event boxes and adds buttons
   function injectButton() {
-    // Select the CMS upcoming events section (matches homepage section)
-    const eventsSection = document.querySelector('.CMSComponentUpcomingEvents');
-    if (!eventsSection) return; // Section not found
-
-    // For future-proofing, target all event "boxes" inside this section
-    // (Assuming each event is a .EventRow or similar; adjust selector as needed)
-    const eventBoxes = eventsSection.querySelectorAll('.EventRow, .Row, [class*="Event"]'); // Add more specific selectors if needed
-
-    eventBoxes.forEach(eventBox => {
-      // Find the .Content div in the event box
-      const contentDiv = eventBox.querySelector('.Content');
+    // For every ContentWrapper in the events section
+    document.querySelectorAll('.CMSComponentUpcomingEvents .ContentWrapper').forEach(wrapper => {
+      const contentDiv = wrapper.querySelector('.Content');
       if (!contentDiv) return;
 
-      // Find all possible title elements, including <a class="Title">
-      const titleEls = contentDiv.querySelectorAll('a.Title, .Title, h3, h2, h1');
-      let foundFiesta = false;
-      titleEls.forEach(el => {
-        if (/team fiesta gathering/i.test(el.textContent.trim())) {
-          foundFiesta = true;
-        }
-      });
+      // Find the title in this Content div
+      const titleEl = contentDiv.querySelector('a.Title');
+      if (!titleEl) return;
 
-      if (foundFiesta) {
-        // Find the Actions container
-        const actionsDiv = eventBox.querySelector('div.Actions.AnonId_actionContainer');
+      if (/team fiesta gathering/i.test(titleEl.textContent.trim())) {
+        // Find the Actions div (sibling of Content within the same wrapper)
+        const actionsDiv = wrapper.querySelector('.Actions.AnonId_actionContainer');
         if (!actionsDiv) return;
 
-        // Prevent duplicate buttons
+        // Prevent duplicate button
         if (actionsDiv.querySelector('.bsc-event-action-btn')) return;
 
-        // Create the RSVP button
+        // Create and append the RSVP button
         const btn = document.createElement('a');
         btn.href = 'https://forms.gle/SKD1o1vMaMSrEKqf8';
         btn.target = '_blank';
         btn.rel = 'noopener noreferrer';
         btn.className = 'bsc-event-action-btn EditCommitmentButton';
         btn.innerText = 'RSVP for Fiesta Gathering';
-
-        // Insert button as the last child of the Actions container
         actionsDiv.appendChild(btn);
-        // Optionally: log for debug
-        // console.log('RSVP button injected for Team Fiesta Gathering');
       }
     });
   }
