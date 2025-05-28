@@ -274,7 +274,7 @@ BSC.addEventActionButton = function () {
         const btn = document.createElement('a');
         btn.href = 'https://forms.gle/SKD1o1vMaMSrEKqf8';
         btn.target = '_blank';
-        btn.className = 'Button Primary';
+        btn.className = 'Button Primary bsc-rsvp';
         btn.innerHTML = '<icon class="pencil"></icon><span>RSVP Now</span>';
         actionsDiv.appendChild(btn);
       }
