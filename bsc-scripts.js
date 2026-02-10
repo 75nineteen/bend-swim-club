@@ -302,7 +302,7 @@ if (document.readyState === "loading") {
 }
 
 
-// === BSC College Recruiting Page (Accordion + TOC, no IDs/data/aria required) ===
+// === BSC College Recruiting Page (Accordion + TOC, single-open behavior) ===
 BSC.enableCollegeRecruitingPage = function () {
   function setOpen(acc, open) {
     var body = acc.querySelector(".bsc-cr-acc-body");
@@ -314,8 +314,8 @@ BSC.enableCollegeRecruitingPage = function () {
     else acc.classList.remove("bsc-cr-open");
   }
 
-  function isOpen(acc) {
-    return acc.classList.contains("bsc-cr-open");
+  function closeAll(accs) {
+    for (var i = 0; i < accs.length; i++) setOpen(accs[i], false);
   }
 
   function findKeyFromClass(el, prefix) {
@@ -330,7 +330,7 @@ BSC.enableCollegeRecruitingPage = function () {
   function init(root) {
     var accs = root.querySelectorAll(".bsc-cr-acc");
 
-    // Accordion toggle
+    // Accordion toggle (single-open)
     for (var i = 0; i < accs.length; i++) {
       (function (acc) {
         var head = acc.querySelector(".bsc-cr-acc-head");
@@ -338,23 +338,29 @@ BSC.enableCollegeRecruitingPage = function () {
 
         head.addEventListener("click", function (e) {
           if (e && typeof e.preventDefault === "function") e.preventDefault();
-          setOpen(acc, !isOpen(acc));
+
+          var shouldOpen = !acc.classList.contains("bsc-cr-open");
+          closeAll(accs);
+          if (shouldOpen) setOpen(acc, true);
         });
       })(accs[i]);
     }
 
-    // Jump links (open + smooth scroll)
+    // Jump links (single-open + smooth scroll)
     var jumps = root.querySelectorAll(".bsc-cr-jump");
     for (var j = 0; j < jumps.length; j++) {
       jumps[j].addEventListener("click", function (e) {
         if (e && typeof e.preventDefault === "function") e.preventDefault();
+
         var key = findKeyFromClass(this, "bsc-cr-jump-");
         if (!key) return;
 
         var target = root.querySelector(".bsc-cr-acc-" + key);
         if (!target) return;
 
+        closeAll(accs);
         setOpen(target, true);
+
         if (typeof target.scrollIntoView === "function") {
           try {
             target.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -365,7 +371,7 @@ BSC.enableCollegeRecruitingPage = function () {
       });
     }
 
-    // Expand / collapse all (anchors)
+    // Expand / collapse all (anchors) — still supported
     var expand = root.querySelector(".bsc-cr-expand");
     var collapse = root.querySelector(".bsc-cr-collapse");
 
@@ -379,7 +385,7 @@ BSC.enableCollegeRecruitingPage = function () {
     if (collapse) {
       collapse.addEventListener("click", function (e) {
         if (e && typeof e.preventDefault === "function") e.preventDefault();
-        for (var k2 = 0; k2 < accs.length; k2++) setOpen(accs[k2], false);
+        closeAll(accs);
       });
     }
   }
