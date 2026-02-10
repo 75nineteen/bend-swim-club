@@ -300,3 +300,83 @@ if (document.readyState === "loading") {
 } else {
   BSC.addEventActionButton();
 }
+
+
+// === BSC College Recruiting Page (Accordion + TOC, no IDs required) ===
+BSC.enableCollegeRecruitingPage = function () {
+  function setOpen(acc, open) {
+    var head = acc.querySelector(".bsc-cr-acc-head");
+    var body = acc.querySelector(".bsc-cr-acc-body");
+    var icon = acc.querySelector(".bsc-cr-acc-icon");
+    if (!head || !body) return;
+
+    body.style.display = open ? "block" : "none";
+    head.setAttribute("aria-expanded", open ? "true" : "false");
+    if (icon) icon.textContent = open ? "–" : "+";
+  }
+
+  function init(root) {
+    var accs = root.querySelectorAll(".bsc-cr-acc");
+
+    // Accordion toggle
+    for (var i = 0; i < accs.length; i++) {
+      (function (acc) {
+        var head = acc.querySelector(".bsc-cr-acc-head");
+        if (!head) return;
+
+        head.addEventListener("click", function () {
+          var expanded = head.getAttribute("aria-expanded") === "true";
+          setOpen(acc, !expanded);
+        });
+      })(accs[i]);
+    }
+
+    // TOC jump: open section + smooth scroll (no ids needed)
+    var tocLinks = root.querySelectorAll(".bsc-cr-toc a[data-jump]");
+    for (var j = 0; j < tocLinks.length; j++) {
+      tocLinks[j].addEventListener("click", function (e) {
+        e.preventDefault();
+        var key = this.getAttribute("data-jump");
+        var target = root.querySelector('.bsc-cr-acc[data-key="' + key + '"]');
+        if (!target) return;
+
+        setOpen(target, true);
+        if (typeof target.scrollIntoView === "function") {
+          try {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+          } catch (_) {
+            target.scrollIntoView(true);
+          }
+        }
+      });
+    }
+
+    // Expand/collapse all (optional)
+    var expandBtn = root.querySelector('button[data-action="expand"]');
+    var collapseBtn = root.querySelector('button[data-action="collapse"]');
+
+    if (expandBtn) {
+      expandBtn.addEventListener("click", function () {
+        for (var k = 0; k < accs.length; k++) setOpen(accs[k], true);
+      });
+    }
+    if (collapseBtn) {
+      collapseBtn.addEventListener("click", function () {
+        for (var k2 = 0; k2 < accs.length; k2++) setOpen(accs[k2], false);
+      });
+    }
+  }
+
+  // Initialize only when the page contains the College Recruiting root container
+  var root = document.querySelector(".bsc-cr");
+  if (root) init(root);
+};
+
+// ✅ Run regardless of document load timing
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    BSC.enableCollegeRecruitingPage();
+  });
+} else {
+  BSC.enableCollegeRecruitingPage();
+}
