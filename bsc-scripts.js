@@ -403,3 +403,119 @@ if (document.readyState === "loading") {
 } else {
   BSC.enableCollegeRecruitingPage();
 }
+
+// === BSC Tryout Page (automatic upcoming-date highlighting) ===
+BSC.enableTryoutDates = function () {
+  function getDateKeyFromClass(element) {
+    if (!element || !element.classList) return null;
+
+    for (var i = 0; i < element.classList.length; i++) {
+      var className = element.classList[i];
+
+      if (className.indexOf("bsc-tryout-date-") === 0) {
+        return className.slice("bsc-tryout-date-".length);
+      }
+    }
+
+    return null;
+  }
+
+  function getPacificDateKey() {
+    try {
+      var formatter = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Los_Angeles",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      });
+
+      var parts = formatter.formatToParts(new Date());
+      var values = {};
+
+      for (var i = 0; i < parts.length; i++) {
+        if (parts[i].type !== "literal") {
+          values[parts[i].type] = parts[i].value;
+        }
+      }
+
+      return values.year + "-" + values.month + "-" + values.day;
+    } catch (error) {
+      var now = new Date();
+      var year = now.getFullYear();
+      var month = String(now.getMonth() + 1).padStart(2, "0");
+      var day = String(now.getDate()).padStart(2, "0");
+
+      return year + "-" + month + "-" + day;
+    }
+  }
+
+  var root = document.querySelector(".bsc-tryouts");
+
+  if (!root || root.getAttribute("data-bsc-tryouts-ready") === "true") {
+    return;
+  }
+
+  root.setAttribute("data-bsc-tryouts-ready", "true");
+
+  var todayKey = getPacificDateKey();
+  var grid = root.querySelector(".bsc-tryouts-date-grid");
+  var fallback = root.querySelector(".bsc-tryout-no-dates");
+  var cards = Array.prototype.slice.call(
+    root.querySelectorAll(".bsc-tryout-date")
+  );
+  var upcoming = [];
+
+  for (var i = 0; i < cards.length; i++) {
+    var dateKey = getDateKeyFromClass(cards[i]);
+
+    cards[i].classList.remove("bsc-tryout-next");
+
+    if (!dateKey || dateKey < todayKey) {
+      cards[i].style.display = "none";
+    } else {
+      cards[i].style.display = "";
+
+      upcoming.push({
+        dateKey: dateKey,
+        element: cards[i]
+      });
+    }
+  }
+
+  upcoming.sort(function (a, b) {
+    return a.dateKey.localeCompare(b.dateKey);
+  });
+
+  for (var j = 0; j < upcoming.length; j++) {
+    var card = upcoming[j].element;
+    var label = card.querySelector(".bsc-tryout-card-label");
+
+    if (grid) {
+      grid.appendChild(card);
+    }
+
+    if (j === 0) {
+      card.classList.add("bsc-tryout-next");
+
+      if (label) {
+        label.textContent = "Next tryout";
+      }
+    } else if (label) {
+      label.textContent = "Upcoming tryout";
+    }
+  }
+
+  if (grid) {
+    grid.style.display = upcoming.length ? "grid" : "none";
+  }
+
+  if (fallback) {
+    fallback.style.display = upcoming.length ? "none" : "block";
+  }
+};
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", BSC.enableTryoutDates);
+} else {
+  BSC.enableTryoutDates();
+}
