@@ -519,3 +519,39 @@ if (document.readyState === "loading") {
 } else {
   BSC.enableTryoutDates();
 }
+
+
+// === BSC Thanksgiving Practice Schedule (automatic expiration) ===
+BSC.hideExpiredThanksgivingSchedule = function () {
+  var schedule = document.querySelector(".bsc-thanksgiving-schedule");
+  if (!schedule) return;
+
+  var endDateClass = Array.from(schedule.classList).find(function (className) {
+    return /^bsc-schedule-through-\d{4}-\d{2}-\d{2}$/.test(className);
+  });
+  if (!endDateClass) return;
+
+  var endDate = endDateClass.slice("bsc-schedule-through-".length);
+  var parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+
+  var date = {};
+  parts.forEach(function (part) {
+    date[part.type] = part.value;
+  });
+
+  var today = date.year + "-" + date.month + "-" + date.day;
+  if (today > endDate) {
+    schedule.style.display = "none";
+  }
+};
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", BSC.hideExpiredThanksgivingSchedule);
+} else {
+  BSC.hideExpiredThanksgivingSchedule();
+}
